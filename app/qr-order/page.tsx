@@ -128,41 +128,50 @@ export default function QROrderPage() {
     return cart.reduce((sum, item) => sum + (item.priceNum * item.quantity), 0)
   }
 
-  const sendOrder = () => {
+  const sendOrder = async () => {
     if (cart.length === 0) {
       alert('Giỏ hàng trống!')
       return
     }
     
-    // Tạo đơn hàng với thông tin đầy đủ
-    const orderDetails = {
-      orderId: `ORD-${Date.now()}`,
-      table: tableNumber,
-      items: cart.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        priceNum: item.priceNum
-      })),
-      total: getTotalPrice(),
-      timestamp: new Date().toISOString(),
-      status: 'Pending'
+    try {
+      const { createOrder } = await import('@/lib/supabaseClient')
+      
+      const orderData = {
+        order_id: `ORD-${Date.now()}`,
+        table_number: tableNumber,
+        service_type: 'dine-in' as const,
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          priceNum: item.priceNum
+        })),
+        total_amount: getTotalPrice(),
+        status: 'pending' as const
+      }
+      
+      const { data, error } = await createOrder(orderData)
+      
+      if (error) {
+        console.error('Lỗi gửi đơn hàng:', error)
+        alert('Có lỗi xảy ra, vui lòng thử lại!')
+        return
+      }
+      
+      console.log('✅ Đơn hàng đã được gửi:', data)
+      setOrderSent(true)
+      
+      setTimeout(() => {
+        setCart([])
+        setOrderSent(false)
+        setShowCart(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Lỗi kết nối:', error)
+      alert('Không thể kết nối đến server. Vui lòng kiểm tra cấu hình Supabase!')
     }
-    
-    // Log để test (trong production sẽ gửi đến Firebase/Supabase)
-    console.log('🔔 ĐƠN HÀNG MỚI:', orderDetails)
-    
-    // TODO: Gửi đến backend/database
-    // await fetch('/api/orders', { method: 'POST', body: JSON.stringify(orderDetails) })
-    // hoặc Firebase: await addDoc(collection(db, 'orders'), orderDetails)
-    
-    setOrderSent(true)
-    
-    setTimeout(() => {
-      setCart([])
-      setOrderSent(false)
-      setShowCart(false)
-    }, 3000)
   }
 
   const filteredMenu = category === 'Tất cả' 

@@ -312,6 +312,8 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+            </header>
+
             {/* STATS CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
               <div className="bg-[#111] p-6 rounded-xl border border-white/5">
@@ -409,42 +411,48 @@ export default function AdminDashboard() {
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="bg-gold text-black text-xs font-bold px-3 py-1 rounded">
-                          BÀN {order.table}
+                          BÀN {order.table_number}
                         </span>
-                        <span className="text-gray-500 text-sm">#{order.id}</span>
+                        <span className="text-gray-500 text-sm">#{order.order_id}</span>
                       </div>
-                      <p className="text-xs text-gray-500">{order.time}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(order.created_at).toLocaleString('vi-VN')}
+                      </p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      order.status === 'Completed' ? 'bg-green-500/20 text-green-500' :
-                      order.status === 'Cooking' ? 'bg-yellow-500/20 text-yellow-500' :
+                      order.status === 'completed' ? 'bg-green-500/20 text-green-500' :
+                      order.status === 'cooking' ? 'bg-yellow-500/20 text-yellow-500' :
                       'bg-red-500/20 text-red-500'
                     }`}>
                       {order.status}
                     </span>
                   </div>
                   
-                  <p className="font-medium text-gray-300 mb-3">{order.items}</p>
-                  <p className="text-2xl font-bold text-gold mb-4">{order.total}</p>
+                  <p className="font-medium text-gray-300 mb-3">
+                    {order.items.map(item => `${item.name} (${item.quantity})`).join(', ')}
+                  </p>
+                  <p className="text-2xl font-bold text-gold mb-4">
+                    {(order.total_amount / 1000).toFixed(0)}k
+                  </p>
                   
                   <div className="flex gap-2">
-                    {order.status === 'Pending' && (
+                    {order.status === 'pending' && (
                       <button 
-                        onClick={() => updateOrderStatus(order.id, 'Cooking')}
+                        onClick={() => updateOrderStatus(order.id!, 'cooking')}
                         className="flex-1 bg-yellow-600 hover:bg-yellow-500 py-2 rounded-lg font-medium text-sm transition"
                       >
                         Bắt đầu nấu
                       </button>
                     )}
-                    {order.status === 'Cooking' && (
+                    {order.status === 'cooking' && (
                       <button 
-                        onClick={() => updateOrderStatus(order.id, 'Completed')}
+                        onClick={() => updateOrderStatus(order.id!, 'completed')}
                         className="flex-1 bg-green-600 hover:bg-green-500 py-2 rounded-lg font-medium text-sm transition"
                       >
                         Hoàn thành
                       </button>
                     )}
-                    {order.status === 'Completed' && (
+                    {order.status === 'completed' && (
                       <div className="flex-1 text-center py-2 text-green-500 font-medium text-sm">
                         ✓ Đã hoàn thành
                       </div>
